@@ -363,5 +363,5 @@ This project is proprietary. All rights reserved.
 ---
 
 <p align="center">
-  Built with ❤️ by <strong>MyCOINFLIP</strong> Team
+  Built with ❤️ by <strong>Beruang Salju & Yachan</strong>, mana uangku yang masih sisa itu wok
 </p>
