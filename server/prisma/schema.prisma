@@ -1,0 +1,103 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model User {
+  id           Int           @id @default(autoincrement())
+  email        String        @unique
+  password     String
+  name         String?
+  role         Role          @default(USER)
+  profitMode   String        @default("random") // random, win, loss
+  status       String        @default("active") // active, banned
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+  wallet       Wallet?
+  kyc          Kyc?
+  transactions Transaction[]
+}
+
+model Wallet {
+  id        Int      @id @default(autoincrement())
+  userId    Int      @unique
+  user      User     @relation(fields: [userId], references: [id])
+  balance   Float    @default(0.0)
+  assets    Json     @default("{}") // Stores crypto balances e.g. {"btc": 0.5}
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Transaction {
+  id            Int               @id @default(autoincrement())
+  userId        Int
+  user          User              @relation(fields: [userId], references: [id])
+  amount        Float
+  price         Float? // Execution price for trades
+  coinSymbol    String? // e.g. "BTC"
+  type          TransactionType
+  status        TransactionStatus @default(PENDING)
+  targetAddress String? // Withdrawal destination
+  proofUrl      String? // Proof of payment image
+  createdAt     DateTime          @default(now())
+}
+
+model Kyc {
+  id              Int       @id @default(autoincrement())
+  userId          Int       @unique
+  user            User      @relation(fields: [userId], references: [id])
+  status          KycStatus @default(PENDING)
+  documentUrl     String? // Front of ID
+  documentUrlBack String? // Back of ID
+  fullName        String?
+  idNumber        String?
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+}
+
+enum Role {
+  USER
+  ADMIN
+  SUPERUSER
+}
+
+enum TransactionType {
+  DEPOSIT
+  WITHDRAWAL
+  TRADE_BUY
+  TRADE_SELL
+  TRADE_WIN
+  TRADE_LOSS
+}
+
+enum TransactionStatus {
+  PENDING
+  COMPLETED
+  FAILED
+}
+
+enum KycStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+model AdminWallet {
+  id        Int      @id @default(autoincrement())
+  network   String   @unique // TRC20, ERC20, BEP20
+  address   String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model TradingDuration {
+  id         Int   @id @default(autoincrement())
+  seconds    Int   @unique
+  percentage Float @default(80) // win/loss percentage
+}

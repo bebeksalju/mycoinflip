@@ -1,43 +1,97 @@
 import { defineStore } from 'pinia';
 import { ref, reactive } from 'vue';
+import axios from '../api/axios';
 
 export const useAdminStore = defineStore('admin', () => {
     
-    // Mock Transactions (Deposits & Withdrawals)
-    const transactions = reactive([
-        { id: 101, type: 'DEPOSIT', user: 'Jane Smith', email: 'jane@smith.com', amount: 500, asset: 'USDT', network: 'TRC20', status: 'pending', date: '2023-10-25 10:30' },
-        { id: 102, type: 'WITHDRAWAL', user: 'John Doe', email: 'john@doe.com', amount: 1200, asset: 'USDT', network: 'ERC20', status: 'pending', date: '2023-10-25 11:15' },
-        { id: 103, type: 'DEPOSIT', user: 'Michael Brown', email: 'mike@trading.com', amount: 5000, asset: 'USDT', network: 'TRC20', status: 'approved', date: '2023-10-24 09:00' },
-        { id: 104, type: 'WITHDRAWAL', user: 'Alex Johnson', email: 'alex@crypto.com', amount: 100, asset: 'USDT', network: 'BEP20', status: 'rejected', date: '2023-10-24 14:20' }
-    ]);
+    // Platform Stats
+    const platformStats = reactive({
+        totalUsers: 0,
+        totalDeposits: 0,
+        pendingWithdrawals: 0,
+        pendingKyc: 0,
+        totalTrades: 0,
+        recentActivity: []
+    });
 
-    // Mock KYC Requests
-    const kycRequests = reactive([
-        { id: 501, user: 'Jane Smith', email: 'jane@smith.com', status: 'pending', date: '2023-10-25 09:45', documents: { front: 'id_front_mock.jpg', back: 'id_back_mock.jpg' } },
-        { id: 502, user: 'New User 01', email: 'new@user.com', status: 'pending', date: '2023-10-26 08:00', documents: { front: 'id_front_mock.jpg', back: 'id_back_mock.jpg' } }
-    ]);
+    const isLoading = ref(false);
+    const transactions = ref([]);
+    const kycRequests = ref([]);
 
-    // Actions
-    function updateTransactionStatus(id, newStatus) {
-        const tx = transactions.find(t => t.id === id);
-        if (tx) {
-            tx.status = newStatus;
+    // Fetch Admin Dashboard Stats
+    async function fetchPlatformStats() {
+        isLoading.value = true;
+        try {
+            const response = await axios.get('/trade/admin/stats');
+            const data = response.data;
+            platformStats.totalUsers = data.totalUsers;
+            platformStats.totalDeposits = data.totalDeposits;
+            platformStats.pendingWithdrawals = data.pendingWithdrawals;
+            platformStats.pendingKyc = data.pendingKyc;
+            platformStats.totalTrades = data.totalTrades;
+            platformStats.recentActivity = data.recentActivity || [];
+        } catch (error) {
+            console.error('Failed to fetch admin stats:', error);
+        } finally {
+            isLoading.value = false;
         }
     }
 
-    function updateKYCStatus(id, newStatus) {
-        const req = kycRequests.find(k => k.id === id);
-        if (req) {
-            req.status = newStatus;
+    // Finance: Fetch transactions
+    async function fetchTransactions() {
+        try {
+            const response = await axios.get('/admin/transactions');
+            transactions.value = response.data;
+        } catch (error) {
+            console.error('Failed to fetch transactions:', error);
         }
     }
 
-    // Getters / Computed logic can be done in components for now
+    // Finance: Update transaction status (approve/reject)
+    async function updateTransactionStatus(id, newStatus) {
+        try {
+            await axios.put(`/admin/transactions/${id}/status`, { status: newStatus });
+            // Update local state
+            const tx = transactions.value.find(t => t.id === id);
+            if (tx) tx.status = newStatus;
+        } catch (error) {
+            console.error('Failed to update transaction:', error);
+        }
+    }
+
+    // KYC: Fetch requests
+    async function fetchKycRequests() {
+        try {
+            const response = await axios.get('/admin/kyc');
+            kycRequests.value = response.data;
+        } catch (error) {
+            console.error('Failed to fetch KYC requests:', error);
+        }
+    }
+
+    // KYC: Update status (approve/reject)
+    async function updateKYCStatus(id, newStatus) {
+        try {
+            // Map frontend status to backend expected value
+            const apiStatus = newStatus === 'verified' ? 'approved' : newStatus;
+            await axios.put(`/admin/kyc/${id}/status`, { status: apiStatus });
+            // Update local state
+            const req = kycRequests.value.find(k => k.id === id);
+            if (req) req.status = newStatus;
+        } catch (error) {
+            console.error('Failed to update KYC:', error);
+        }
+    }
 
     return {
+        platformStats,
+        isLoading,
         transactions,
         kycRequests,
+        fetchPlatformStats,
+        fetchTransactions,
         updateTransactionStatus,
+        fetchKycRequests,
         updateKYCStatus
     };
 });

@@ -1,5 +1,6 @@
 import { defineStore } from 'pinia';
 import { ref, reactive } from 'vue';
+import { io } from 'socket.io-client';
 
 export const useMarketStore = defineStore('market', () => {
     // --- STATE DASAR ---
@@ -196,69 +197,63 @@ export const useMarketStore = defineStore('market', () => {
 
     function connectWebSocket() {
         if (ws) {
-            ws.close(); // Cleanup old connection
+            ws.disconnect(); // Socket.io disconnect
             ws = null;
         }
 
-        // --- BINANCE WEBSOCKET IMPLEMENTATION ---
-        // Construct streams for all supported coins: btcusdt@aggTrade, ethusdt@aggTrade, etc.
-        const streams = supportedCoins.map(sym => `${COIN_MAP[sym].pair}@aggTrade`).join('/');
-        const wsUrl = `wss://stream.binance.com:9443/stream?streams=${streams}`;
-
-        console.log('Connecting to Binance WS:', wsUrl);
-        ws = new WebSocket(wsUrl);
+        console.log('Connecting to Backend Socket.io...');
+        // Import socket.io-client dynamically or assume it's available if script tag (but we installed it)
+        // Better: import at top. For now, let's use the installed package.
+        // We need to import 'io' from 'socket.io-client' at the text. 
+        // Since this is inside a function, I will add the import at the top later.
+        // Assuming 'io' is imported.
         
-        ws.onopen = () => { 
-            connectionStatus.value = 'Connected (Binance)'; 
-        };
-        
-        ws.onmessage = (event) => {
-            const message = JSON.parse(event.data);
-            // Binance Combined Stream format: { stream: 'btcusdt@aggTrade', data: { ... } }
-            if (!message.data) return;
+        ws = io('http://localhost:3000'); // Connect to backend
 
-            const trade = message.data; // payload
-            const symbol = trade.s.toUpperCase(); // e.g., 'BTCUSDT' (Binance uses uppercase in payload usually)
+        ws.on('connect', () => {
+             connectionStatus.value = 'Connected (Backend)';
+             console.log('Connected to Backend Socket.io');
+        });
+
+        ws.on('market:update', (trade) => {
+            // Data is already parsed from backend
+            if (!trade) return;
+
+            const symbol = trade.s.toUpperCase(); 
             
-            // Map Symbol back to our ID if needed, or just use pair check
-            // Our COIN_MAP uses 'btcusdt' (lowercase pair)
-            
+            // Map Symbol back to our ID
             const coinKey = Object.keys(COIN_MAP).find(key => COIN_MAP[key].pair.toUpperCase() === symbol);
             
-            if (!coinKey) return; // Should not happen if we subscribed correctly
+            if (!coinKey) return; 
 
-            const price = parseFloat(trade.p); // 'p' is price in aggTrade
+            const price = parseFloat(trade.p);
             const coinId = COIN_MAP[coinKey].id;
 
-            // 1. GLOBAL UPDATE: Update Market Overview List
+            // 1. GLOBAL UPDATE
             const overviewIndex = marketOverview.value.findIndex(item => item.id === coinId);
             if (overviewIndex !== -1) {
                 marketOverview.value[overviewIndex].current_price = price;
-                // Binance doesn't send 24h change in trade stream, so we stick to initial fetch for that
-                // or we could use !ticker stream for that but it's slower. 
-                // Prioritizing price speed as requested.
             }
 
             // 2. ACTIVE COIN UPDATE
             if (activeCoin.id === coinId) {
                 currentPrice.value = price;
                 
-                // Add to Recent Trades
-                const isBuyerMaker = trade.m; // 'm' = true means sell (maker is buyer), false means buy
+                const isBuyerMaker = trade.m; 
                 const side = isBuyerMaker ? 'sell' : 'buy'; 
                 
                 const newTrade = {
-                    id: trade.a, // Aggregate trade ID
+                    id: trade.a, 
                     price: price,
-                    amount: parseFloat(trade.q), // 'q' is quantity
-                    time: trade.T, // 'T' is timestamp
+                    amount: parseFloat(trade.q), 
+                    time: trade.T, 
                     side: side
                 };
                 
                 recentTrades.value.unshift(newTrade);
                 if (recentTrades.value.length > 50) recentTrades.value.pop();
 
-                // ... Logic Candle ...
+                // Candle Logic
                 const time = Math.floor(Date.now() / 1000);
                 if (lastCandle && time >= lastCandle.time + 60) {
                      lastCandle = { time: Math.floor(time/60)*60, open: lastCandle.close, high: price, low: price, close: price };
@@ -271,18 +266,17 @@ export const useMarketStore = defineStore('market', () => {
                 }
                 if (onCandleUpdate) onCandleUpdate(lastCandle);
             }
-        };
+        });
 
-        ws.onclose = () => {
-             console.log('WS Closed. Reconnecting...');
-             connectionStatus.value = 'Reconnecting...';
-             setTimeout(() => connectWebSocket(), 3000); 
-        };
+        ws.on('disconnect', () => {
+             console.log('Socket.io Disconnected');
+             connectionStatus.value = 'Disconnected';
+        });
 
-        ws.onerror = (err) => {
-             console.error('WS Error:', err);
-             ws.close(); 
-        };
+        ws.on('connect_error', (err) => {
+             console.error('Socket.io Error:', err);
+             connectionStatus.value = 'Error';
+        });
     }
 
     // Fungsi Simulasi (Dinamis Harga)

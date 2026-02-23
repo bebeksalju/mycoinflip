@@ -13,26 +13,41 @@ const kycForm = reactive({
 
 const frontImage = ref(null);
 const backImage = ref(null);
+const frontFile = ref(null);
+const backFile = ref(null);
 
 const handleFileUpload = (event, side) => {
     const file = event.target.files[0];
     if (file) {
-        if (side === 'front') frontImage.value = file.name;
-        if (side === 'back') backImage.value = file.name;
+        if (side === 'front') {
+            frontImage.value = file.name;
+            frontFile.value = file;
+        }
+        if (side === 'back') {
+            backImage.value = file.name;
+            backFile.value = file;
+        }
     }
 };
 
-const submitKYC = () => {
-    if (!kycForm.fullName || !kycForm.idNumber || !frontImage.value || !backImage.value) {
+const submitKYC = async () => {
+    if (!kycForm.fullName || !kycForm.idNumber || !frontFile.value || !backFile.value) {
         marketStore.showToast('Error', 'Please complete all fields and uploads', 'error');
         return;
     }
 
-    // Simulate API Call
-    setTimeout(() => {
-        authStore.submitKYC(kycForm);
+    const formData = new FormData();
+    formData.append('fullName', kycForm.fullName);
+    formData.append('idNumber', kycForm.idNumber);
+    formData.append('front', frontFile.value);
+    formData.append('back', backFile.value);
+
+    const success = await authStore.submitKYC(formData);
+    if (success) {
         marketStore.showToast('Submitted', 'KYC documents submitted for review', 'success');
-    }, 1000);
+    } else {
+        marketStore.showToast('Error', 'KYC submission failed or already submitted', 'error');
+    }
 };
 </script>
 

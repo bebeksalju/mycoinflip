@@ -1,67 +1,83 @@
 import { defineStore } from 'pinia';
 import { ref, reactive } from 'vue';
 import { useRouter } from 'vue-router';
+import api from '../api/axios';
 
 export const useAuthStore = defineStore('auth', () => {
     const isAuthenticated = ref(false);
     const user = reactive({
+        id: null,
         email: '',
         name: '',
-        kycStatus: 'unverified', // unverified, pending, verified, rejected
-        profitMode: 'random', // 'random', 'win', 'loss'
-        isAdmin: false
+        role: 'user',
+        kycStatus: 'unverified',
+        profitMode: 'random',
+        isAdmin: false,
+        token: null
     });
 
-    const mockUsers = reactive([
-        { 
-            id: 1, 
-            firstName: 'John',
-            lastName: 'Doe',
-            name: 'John Doe', 
-            email: 'john@doe.com', 
-            password: 'password',
-            balance: 15400, 
-            profitMode: 'random', 
-            status: 'active', 
-            kyc: 'verified',
-            dob: '1990-01-01',
-            pob: 'New York, USA',
-            phone: '+1 555-0101',
-            address: '123 Wall Street, NY'
-        },
-        { 
-            id: 2, 
-            firstName: 'Jane',
-            lastName: 'Smith',
-            name: 'Jane Smith', 
-            email: 'jane@smith.com', 
-            password: 'password',
-            balance: 2450, 
-            profitMode: 'win', 
-            status: 'active', 
-            kyc: 'pending',
-            dob: '1995-05-15',
-            pob: 'London, UK',
-            phone: '+44 20 7946 0958',
-            address: '456 Queen St, London'
-        },
-        { 
-            id: 3, 
-            firstName: 'Alex',
-            lastName: 'Johnson',
-            name: 'Alex Johnson', 
-            email: 'alex@crypto.com', 
-            password: 'password',
-            balance: 0, 
-            profitMode: 'loss', 
-            status: 'banned', 
-            kyc: 'unverified',
-            dob: '1988-11-20',
-            pob: 'Toronto, Canada',
-            phone: '+1 416-555-0199',
-            address: '789 Maple Ave, Toronto'
+    // Users list (for admin panel)
+    const users = ref([]);
+    const adminUsers = ref([]);
+
+    // Initialize state from local storage
+    const savedToken = localStorage.getItem('token');
+    if (savedToken) {
+        isAuthenticated.value = true;
+        user.token = savedToken;
+    }
+
+    async function register(userData) {
+        try {
+            await api.post('/auth/register', {
+                email: userData.email,
+                password: userData.password,
+                name: `${userData.firstName} ${userData.lastName}`
+            });
+            return true;
+        } catch (error) {
+            console.error('Registration failed:', error.response?.data?.error || error.message);
+            return false;
         }
-    ]);
+    }
+
+    async function login(email, password) {
+        try {
+            const response = await api.post('/auth/login', { email, password });
+            const { user: loggedInUser, token } = response.data;
+
+            isAuthenticated.value = true;
+            user.id = loggedInUser.id;
+            user.email = loggedInUser.email;
+            user.name = loggedInUser.name;
+            user.role = loggedInUser.role;
+            user.token = token;
+            user.isAdmin = loggedInUser.role === 'ADMIN' || loggedInUser.role === 'SUPERUSER';
+            user.kycStatus = loggedInUser.kyc?.status?.toLowerCase() || 'unverified';
+            user.profitMode = loggedInUser.profitMode || 'random';
+            
+            localStorage.setItem('token', token);
+            return { success: true };
+        } catch (error) {
+            console.error('Login failed:', error.response?.data?.error || error.message);
+            if (error.response?.data?.banned) {
+                return { success: false, banned: true };
+            }
+            return { success: false, banned: false };
+        }
+    }
+
+    function logout() {
+        isAuthenticated.value = false;
+        user.id = null;
+        user.email = '';
+        user.name = '';
+        user.token = null;
+        user.isAdmin = false;
+        users.value = [];
+        adminUsers.value = [];
+        localStorage.removeItem('token');
+    }
 
     function setProfitMode(mode) {
         if (['random', 'win', 'loss'].includes(mode)) {
@@ -69,153 +85,121 @@ export const useAuthStore = defineStore('auth', () => {
         }
     }
 
-    function updateUserProfitMode(userId, mode) {
-         const target = mockUsers.find(u => u.id === userId);
-         if (target) {
-             target.profitMode = mode;
-         }
-         // If updating self
-         if (user.email === target?.email) {
-             user.profitMode = mode;
-         }
-    }
-    
-    function toggleUserBan(userId) {
-        const target = mockUsers.find(u => u.id === userId);
-        if (target) {
-            target.status = target.status === 'active' ? 'banned' : 'active';
-        }
-    }
-
-    // Mock Admins
-    const adminUsers = reactive([
-        { id: 1, email: 'admin@crypto.com', password: 'admin', name: 'Super Admin', role: 'superuser' }, // Can manage other admins
-        { id: 2, email: 'manager@crypto.com', password: 'admin', name: 'Manager', role: 'administrator' } // Can only manage users/finance
-    ]);
-
-    function loginAdmin(email, password) {
-        const adminAccount = adminUsers.find(a => a.email === email && a.password === password);
-        if (adminAccount) {
-            isAuthenticated.value = true;
-            user.email = adminAccount.email;
-            user.name = adminAccount.name;
-            user.isAdmin = true;
-            user.role = adminAccount.role; 
+    async function submitKYC(formData) {
+        try {
+            await api.post('/auth/kyc', formData, {
+                headers: { 'Content-Type': 'multipart/form-data' }
+            });
+            user.kycStatus = 'pending';
             return true;
+        } catch (error) {
+            console.error('KYC submit failed:', error);
+            return false;
         }
-        return false;
     }
 
-    function register(userData) {
-        const existing = mockUsers.find(u => u.email === userData.email);
-        if (existing) return false;
+    // ==================== ADMIN: USER MANAGEMENT ====================
 
-        const newUser = {
-            id: mockUsers.length + 1,
-            ...userData,
-            name: `${userData.firstName} ${userData.lastName}`,
-            balance: 0,
-            profitMode: 'random',
-            status: 'active',
-            kyc: 'unverified'
-        };
-        
-        mockUsers.push(newUser);
-        
-        // Auto login after register
-        isAuthenticated.value = true;
-        Object.assign(user, {
-            email: newUser.email,
-            name: newUser.name,
-            isAdmin: false,
-            role: 'user',
-            profitMode: 'random',
-            kycStatus: 'unverified'
-        });
-        
-        return true;
+    async function fetchUsers() {
+        try {
+            const response = await api.get('/admin/users');
+            users.value = response.data;
+        } catch (error) {
+            console.error('Failed to fetch users:', error);
+        }
     }
 
-    function login(email, password) {
-        // User Login - Only check Mock Users
-        if (email && password) {
-            // Prevent Admin login here if intended
-            if (adminUsers.find(a => a.email === email)) {
-                return false; 
+    async function updateUserBalance(userId, balance) {
+        try {
+            await api.put(`/admin/users/${userId}/balance`, { balance });
+            const u = users.value.find(u => u.id === userId);
+            if (u) u.balance = parseFloat(balance);
+        } catch (error) {
+            console.error('Failed to update balance:', error);
+        }
+    }
+
+    async function updateUserProfitMode(userId, mode) {
+        try {
+            await api.put(`/admin/users/${userId}/profit-mode`, { mode });
+            const u = users.value.find(u => u.id === userId);
+            if (u) u.profitMode = mode;
+        } catch (error) {
+            console.error('Failed to update profit mode:', error);
+        }
+    }
+
+    async function toggleUserBan(userId) {
+        try {
+            const response = await api.put(`/admin/users/${userId}/ban`);
+            const u = users.value.find(u => u.id === userId);
+            if (u) u.status = response.data.status;
+        } catch (error) {
+            console.error('Failed to toggle ban:', error);
+        }
+    }
+
+    // ==================== ADMIN: ADMIN MANAGEMENT ====================
+
+    async function fetchAdminUsers() {
+        try {
+            const response = await api.get('/admin/admins');
+            adminUsers.value = response.data;
+        } catch (error) {
+            console.error('Failed to fetch admin users:', error);
+        }
+    }
+
+    async function addAdmin(data) {
+        try {
+            const response = await api.post('/admin/admins', data);
+            if (response.data.success) {
+                adminUsers.value.push(response.data.admin);
             }
-
-            isAuthenticated.value = true;
-            user.email = email;
-            user.isAdmin = false;
-            user.role = 'user';
-            user.name = email.split('@')[0];
-            
-            // Sync with mock user if exists
-            const existing = mockUsers.find(u => u.email === email);
-            if (existing) {
-                if (existing.status === 'banned') {
-                    alert("Your account has been banned.");
-                    isAuthenticated.value = false;
-                    return false;
-                }
-                user.profitMode = existing.profitMode;
-                user.kycStatus = existing.kyc;
-            }
-            return true;
-        }
-        return false;
-    }
-
-    // Admin Management Actions
-    function addAdmin(newAdmin) {
-        const id = adminUsers.length + 1;
-        adminUsers.push({ ...newAdmin, id });
-    }
-
-    function removeAdmin(id) {
-        const index = adminUsers.findIndex(a => a.id === id);
-        if (index !== -1) {
-            adminUsers.splice(index, 1);
+        } catch (error) {
+            console.error('Failed to add admin:', error);
         }
     }
 
-    function updateUserBalance(userId, newBalance) {
-        const target = mockUsers.find(u => u.id === userId);
-        if (target) {
-            target.balance = newBalance;
+    async function removeAdmin(id) {
+        try {
+            await api.delete(`/admin/admins/${id}`);
+            adminUsers.value = adminUsers.value.filter(a => a.id !== id);
+        } catch (error) {
+            console.error('Failed to remove admin:', error);
         }
     }
 
-    function logout() {
-        isAuthenticated.value = false;
-        user.email = '';
-        user.name = '';
-        user.kycStatus = 'unverified';
-        user.isAdmin = false;
-    }
+    // ==================== ADMIN: PROFILE ====================
 
-    function submitKYC(data) {
-        // Mock KYC Submission
-        user.kycStatus = 'pending';
-        return true;
+    async function changePassword(currentPassword, newPassword) {
+        try {
+            const response = await api.put('/admin/password', { currentPassword, newPassword });
+            return response.data;
+        } catch (error) {
+            console.error('Failed to change password:', error);
+            throw error;
+        }
     }
 
     return {
         isAuthenticated,
         user,
+        users,
+        adminUsers,
         login,
-        loginAdmin,
         register,
         logout,
         submitKYC,
         setProfitMode,
-        mockUsers,
-        adminUsers,
-        addAdmin,
-        removeAdmin,
+        fetchUsers,
         updateUserBalance,
         updateUserProfitMode,
-        toggleUserBan
+        toggleUserBan,
+        fetchAdminUsers,
+        addAdmin,
+        removeAdmin,
+        changePassword
     };
 }, {
     persist: true

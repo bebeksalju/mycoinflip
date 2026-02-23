@@ -1,12 +1,15 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import Login from '../views/Login.vue'
 import Dashboard from '../views/Dashboard.vue'
+import LandingPage from '../views/LandingPage.vue'
+
 import UserProfile from '../views/UserProfile.vue'
 import Settings from '../views/Settings.vue'
 import Deposit from '../views/Deposit.vue'
 import Withdrawal from '../views/Withdrawal.vue'
 import KYC from '../views/KYC.vue'
-import { useAuthStore } from '../stores/auth' // Import store for guard
+import Banned from '../views/Banned.vue'
+import { useAuthStore } from '../stores/auth'
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -23,6 +26,16 @@ const router = createRouter({
     },
     {
       path: '/',
+      name: 'landing',
+      component: LandingPage
+    },
+    {
+      path: '/banned',
+      name: 'banned',
+      component: Banned
+    },
+    {
+      path: '/dashboard',
       name: 'dashboard',
       component: Dashboard,
         meta: { requiresAuth: true }
@@ -106,12 +119,23 @@ const router = createRouter({
                 path: 'kyc',
                 name: 'admin-kyc',
                 component: () => import('../views/admin/AdminKYC.vue')
+            },
+            {
+                path: 'admins',
+                name: 'admin-admins',
+                component: () => import('../views/admin/AdminAdmins.vue')
+            },
+            {
+                path: 'wallet',
+                name: 'admin-wallet',
+                component: () => import('../views/admin/AdminWallet.vue')
             }
         ]
     },
     {
         path: '/:pathMatch(.*)*',
         redirect: '/'
+
     }
   ]
 })
@@ -128,16 +152,16 @@ router.beforeEach((to, from, next) => {
         if (!authStore.isAuthenticated) {
             next('/admin/login'); // Redirect to Admin Login
         } else if (!authStore.user.isAdmin) {
-             next('/'); // Authorized but not admin
+             next('/dashboard'); // Authorized but not admin
         } else {
              next();
         }
     }
-    // Prevent Login access if already logged in
-    else if ((to.path === '/login' || to.path === '/register') && authStore.isAuthenticated) {
-        if (authStore.user.isAdmin) next('/admin');
-        else next('/');
-    }
+    // Prevent Login access if already logged in -> DISABLED as per user request
+    // else if ((to.path === '/login' || to.path === '/register') && authStore.isAuthenticated) {
+    //    if (authStore.user.isAdmin) next('/admin');
+    //    else next('/dashboard');
+    // }
     else {
         next();
     }
