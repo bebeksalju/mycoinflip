@@ -8,6 +8,7 @@ const authRoutes = require('./routes/authRoutes');
 const walletRoutes = require('./routes/walletRoutes');
 const tradeRoutes = require('./routes/tradeRoutes');
 const adminRoutes = require('./routes/adminRoutes');
+const chatRoutes = require('./routes/chatRoutes');
 
 app.use(cors());
 app.use(express.json());
@@ -19,6 +20,7 @@ app.use('/api/auth', authRoutes);
 app.use('/api/wallet', walletRoutes);
 app.use('/api/trade', tradeRoutes);
 app.use('/api/admin', adminRoutes);
+app.use('/api/chat', chatRoutes);
 
 // Health Check
 app.get('/health', (req, res) => {

@@ -129,6 +129,11 @@ const router = createRouter({
                 path: 'wallet',
                 name: 'admin-wallet',
                 component: () => import('../views/admin/AdminWallet.vue')
+            },
+            {
+                path: 'chat',
+                name: 'admin-chat',
+                component: () => import('../views/admin/AdminChat.vue')
             }
         ]
     },

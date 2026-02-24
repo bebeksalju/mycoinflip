@@ -22,6 +22,7 @@ model User {
   wallet       Wallet?
   kyc          Kyc?
   transactions Transaction[]
+  chatMessages ChatMessage[]
 }
 
 model Wallet {
@@ -100,4 +101,14 @@ model TradingDuration {
   id         Int   @id @default(autoincrement())
   seconds    Int   @unique
   percentage Float @default(80) // win/loss percentage
+}
+
+model ChatMessage {
+  id        Int      @id @default(autoincrement())
+  userId    Int
+  user      User     @relation(fields: [userId], references: [id])
+  sender    String // "user" or "admin"
+  message   String
+  read      Boolean  @default(false)
+  createdAt DateTime @default(now())
 }

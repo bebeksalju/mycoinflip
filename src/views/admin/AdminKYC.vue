@@ -140,7 +140,7 @@ const reject = () => {
                                 <div
                                     class="aspect-video bg-gray-800 rounded flex items-center justify-center text-gray-600 overflow-hidden">
                                     <img v-if="selectedKYC.documentUrl"
-                                        :src="`http://localhost:3000${selectedKYC.documentUrl}`"
+                                        :src="selectedKYC.documentUrl"
                                         class="w-full h-full object-contain" alt="ID Front" />
                                     <span v-else>No image uploaded</span>
                                 </div>
@@ -150,7 +150,7 @@ const reject = () => {
                                 <div
                                     class="aspect-video bg-gray-800 rounded flex items-center justify-center text-gray-600 overflow-hidden">
                                     <img v-if="selectedKYC.documentUrlBack"
-                                        :src="`http://localhost:3000${selectedKYC.documentUrlBack}`"
+                                        :src="selectedKYC.documentUrlBack"
                                         class="w-full h-full object-contain" alt="ID Back" />
                                     <span v-else>No image uploaded</span>
                                 </div>

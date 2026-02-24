@@ -31,7 +31,7 @@ const reject = (id) => {
 };
 
 const openLightbox = (url) => {
-    lightboxUrl.value = 'http://localhost:3000' + url;
+    lightboxUrl.value = url;
 };
 
 const closeLightbox = () => {
@@ -97,7 +97,7 @@ const closeLightbox = () => {
                             </td>
                             <td class="px-6 py-4">
                                 <img v-if="tx.proofUrl" 
-                                    :src="'http://localhost:3000' + tx.proofUrl" 
+                                    :src="tx.proofUrl" 
                                     class="w-10 h-10 object-cover rounded border border-gray-600 cursor-pointer hover:opacity-80 transition-opacity"
                                     @dblclick="openLightbox(tx.proofUrl)"
                                     title="Double-click to enlarge" />

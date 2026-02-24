@@ -208,7 +208,7 @@ export const useMarketStore = defineStore('market', () => {
         // Since this is inside a function, I will add the import at the top later.
         // Assuming 'io' is imported.
         
-        ws = io('http://localhost:3000'); // Connect to backend
+        ws = io(); // Auto-connect to current host
 
         ws.on('connect', () => {
              connectionStatus.value = 'Connected (Backend)';

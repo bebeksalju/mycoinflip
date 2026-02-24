@@ -1,6 +1,7 @@
 <script setup>
-import { onMounted } from 'vue';
+import { onMounted, computed } from 'vue';
 import ToastNotification from './components/ToastNotification.vue';
+import ChatWidget from './components/ChatWidget.vue';
 import { useMarketStore } from './stores/market';
 import { useWalletStore } from './stores/wallet';
 import { useAuthStore } from './stores/auth';
@@ -198,6 +199,9 @@ const handleLogout = () => {
     <div class="flex-1 flex flex-col min-h-0 overflow-hidden" :class="{ 'mb-[50px] md:mb-0': authStore.isAuthenticated }">
       <RouterView />
     </div>
+
+    <!-- Chat Widget (only for authenticated non-admin users) -->
+    <ChatWidget v-if="authStore.isAuthenticated && !authStore.user.isAdmin && route.name !== 'login' && route.name !== 'landing' && route.name !== 'banned'" />
 
   </div>
 </template>
