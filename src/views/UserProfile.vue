@@ -61,9 +61,6 @@ const winRate = computed(() => {
                 </h2>
                 <p class="text-gray-400 mt-1">{{ authStore.user.email }}</p>
                 <div class="flex items-center justify-center md:justify-start gap-3 mt-3">
-                    <div class="bg-gray-800 px-3 py-1 rounded text-xs font-mono text-gray-300 border border-gray-700">
-                        ID: {{ authStore.user.id }}
-                    </div>
                     <div
                         class="bg-yellow-500/20 px-3 py-1 rounded text-xs font-bold text-yellow-500 border border-yellow-500/20">
                         {{ authStore.user.role }}

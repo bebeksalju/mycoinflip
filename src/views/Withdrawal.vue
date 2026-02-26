@@ -2,9 +2,14 @@
 import { reactive, computed } from 'vue';
 import { useWalletStore } from '../stores/wallet';
 import { useMarketStore } from '../stores/market';
+import { useAuthStore } from '../stores/auth';
 
 const walletStore = useWalletStore();
 const marketStore = useMarketStore();
+const authStore = useAuthStore();
+
+const isKycApproved = computed(() => authStore.user.kycStatus === 'approved');
+const kycStatus = computed(() => authStore.user.kycStatus);
 
 const withdrawalForm = reactive({
     network: 'TRC20',

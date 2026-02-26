@@ -206,8 +206,10 @@ const getStats = async (req, res) => {
 // Admin: Platform-wide statistics
 const getAdminStats = async (req, res) => {
     try {
-        // Total Users
-        const totalUsers = await prisma.user.count();
+        // Total Users (Excludes ADMIN/SUPERUSER)
+        const totalUsers = await prisma.user.count({
+            where: { role: 'USER' }
+        });
 
         // Total Deposits (sum of completed deposit amounts)
         const deposits = await prisma.transaction.findMany({

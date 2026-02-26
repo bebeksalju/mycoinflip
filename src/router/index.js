@@ -59,6 +59,12 @@ const router = createRouter({
         meta: { requiresAuth: true }
     },
     {
+      path: '/chat',
+      name: 'chat',
+      component: () => import('../views/ChatPage.vue'),
+        meta: { requiresAuth: true }
+    },
+    {
       path: '/withdrawal',
       name: 'withdrawal',
       component: Withdrawal,

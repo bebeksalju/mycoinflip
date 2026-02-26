@@ -61,6 +61,17 @@ const withdraw = async (req, res) => {
         const userId = req.user.userId;
         const { amount, targetAddress } = req.body;
 
+        // KYC check - withdrawal requires approved KYC
+        const kyc = await prisma.kyc.findUnique({ where: { userId } });
+        if (!kyc || kyc.status !== 'APPROVED') {
+            const kycMessage = !kyc
+                ? 'Please complete KYC verification before withdrawing funds.'
+                : kyc.status === 'PENDING'
+                    ? 'Your KYC is still under review. Please wait for approval before withdrawing.'
+                    : 'Your KYC was rejected. Please resubmit your documents.';
+            return res.status(403).json({ error: kycMessage, kycRequired: true, kycStatus: kyc?.status || 'NONE' });
+        }
+
         if (!amount || amount <= 0) {
             return res.status(400).json({ error: 'Invalid amount' });
         }

@@ -94,12 +94,12 @@ const formatCompact = (num) => {
             <!-- Animated gradient orbs -->
             <div class="absolute inset-0 pointer-events-none">
                 <div
-                    class="absolute top-1/4 left-1/4 w-[600px] h-[600px] bg-emerald-500/[0.07] rounded-full blur-[150px] animate-pulse-slow">
+                    class="absolute top-1/4 left-1/4 w-[250px] h-[250px] md:w-[600px] md:h-[600px] bg-emerald-500/[0.07] rounded-full blur-[80px] md:blur-[150px] animate-pulse-slow">
                 </div>
-                <div class="absolute bottom-1/4 right-1/4 w-[500px] h-[500px] bg-blue-500/[0.05] rounded-full blur-[150px] animate-pulse-slow"
+                <div class="absolute bottom-1/4 right-1/4 w-[200px] h-[200px] md:w-[500px] md:h-[500px] bg-blue-500/[0.05] rounded-full blur-[80px] md:blur-[150px] animate-pulse-slow"
                     style="animation-delay: 3s;"></div>
                 <div
-                    class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] bg-violet-500/[0.03] rounded-full blur-[200px]">
+                    class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[300px] h-[300px] md:w-[800px] md:h-[800px] bg-violet-500/[0.03] rounded-full blur-[100px] md:blur-[200px]">
                 </div>
             </div>
 
@@ -108,7 +108,7 @@ const formatCompact = (num) => {
                 class="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.02)_1px,transparent_1px),linear-gradient(to_right,rgba(255,255,255,0.02)_1px,transparent_1px)] bg-[size:60px_60px] pointer-events-none">
             </div>
 
-            <div class="container mx-auto px-6 text-center relative z-10 pt-24">
+            <div class="container mx-auto px-4 sm:px-6 text-center relative z-10 pt-20 sm:pt-24">
                 <!-- Badge -->
                 <div
                     class="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-white/[0.04] border border-white/[0.06] text-xs font-semibold text-emerald-400 mb-8 backdrop-blur-sm">
@@ -117,7 +117,7 @@ const formatCompact = (num) => {
                 </div>
 
                 <!-- Main heading -->
-                <h1 class="text-5xl sm:text-6xl md:text-8xl font-black mb-6 leading-[0.95] tracking-tighter">
+                <h1 class="text-4xl sm:text-5xl md:text-8xl font-black mb-6 leading-[0.95] tracking-tighter">
                     <span class="text-white">Trade Crypto</span><br />
                     <span
                         class="text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 via-teal-300 to-cyan-400">Without
@@ -146,9 +146,9 @@ const formatCompact = (num) => {
                 </div>
 
                 <!-- Live coin cards -->
-                <div class="flex flex-wrap gap-3 justify-center max-w-3xl mx-auto" v-if="topCoins.length > 0">
+                <div class="flex gap-3 justify-start sm:justify-center max-w-3xl mx-auto overflow-x-auto pb-2 px-2 sm:flex-wrap sm:overflow-x-visible sm:pb-0 sm:px-0 scrollbar-hide" v-if="topCoins.length > 0">
                     <div v-for="coin in topCoins.slice(0, 5)" :key="coin.id"
-                        class="flex items-center gap-2.5 px-4 py-2.5 rounded-xl bg-white/[0.03] border border-white/[0.06] backdrop-blur-sm hover:bg-white/[0.06] transition-all cursor-default">
+                        class="flex items-center gap-2.5 px-4 py-2.5 rounded-xl bg-white/[0.03] border border-white/[0.06] backdrop-blur-sm hover:bg-white/[0.06] transition-all cursor-default shrink-0">
                         <img :src="coin.image" class="w-6 h-6 rounded-full" :alt="coin.name" />
                         <span class="font-bold text-white text-sm">{{ coin.symbol.toUpperCase() }}</span>
                         <span class="font-mono text-gray-400 text-xs">{{ coin.current_price.toLocaleString('en-US', {
@@ -162,20 +162,20 @@ const formatCompact = (num) => {
                 </div>
 
                 <!-- Stats strip -->
-                <div id="stats" class="mt-20 grid grid-cols-3 gap-8 max-w-2xl mx-auto">
+                <div id="stats" class="mt-12 sm:mt-20 grid grid-cols-1 sm:grid-cols-3 gap-6 sm:gap-8 max-w-2xl mx-auto">
                     <div class="text-center">
-                        <div class="text-3xl md:text-4xl font-black text-white mb-1 tabular-nums">{{
+                        <div class="text-2xl sm:text-3xl md:text-4xl font-black text-white mb-1 tabular-nums">{{
                             formatCompact(stats.volume) }}</div>
-                        <div class="text-xs text-gray-500 uppercase tracking-widest font-semibold">24h Volume</div>
+                        <div class="text-[10px] sm:text-xs text-gray-500 uppercase tracking-widest font-semibold">24h Volume</div>
                     </div>
                     <div class="text-center">
-                        <div class="text-3xl md:text-4xl font-black text-white mb-1 tabular-nums">{{
+                        <div class="text-2xl sm:text-3xl md:text-4xl font-black text-white mb-1 tabular-nums">{{
                             stats.activeUsers.toLocaleString() }}</div>
-                        <div class="text-xs text-gray-500 uppercase tracking-widest font-semibold">Active Traders</div>
+                        <div class="text-[10px] sm:text-xs text-gray-500 uppercase tracking-widest font-semibold">Active Traders</div>
                     </div>
                     <div class="text-center">
-                        <div class="text-3xl md:text-4xl font-black text-white mb-1">10+</div>
-                        <div class="text-xs text-gray-500 uppercase tracking-widest font-semibold">Supported Assets
+                        <div class="text-2xl sm:text-3xl md:text-4xl font-black text-white mb-1">10+</div>
+                        <div class="text-[10px] sm:text-xs text-gray-500 uppercase tracking-widest font-semibold">Supported Assets
                         </div>
                     </div>
                 </div>
@@ -192,11 +192,11 @@ const formatCompact = (num) => {
         </section>
 
         <!-- FEATURES - Bento Grid -->
-        <section id="features" class="py-24 relative">
-            <div class="container mx-auto px-6">
+        <section id="features" class="py-16 sm:py-24 relative">
+            <div class="container mx-auto px-4 sm:px-6">
                 <div class="text-center mb-16">
                     <p class="text-emerald-400 text-xs font-bold uppercase tracking-[0.2em] mb-4">Why MyCOINFLIP</p>
-                    <h2 class="text-3xl md:text-5xl font-black text-white tracking-tight">Built for serious traders</h2>
+                    <h2 class="text-2xl sm:text-3xl md:text-5xl font-black text-white tracking-tight">Built for serious traders</h2>
                 </div>
 
                 <div class="grid md:grid-cols-3 gap-4 max-w-5xl mx-auto">
@@ -272,15 +272,15 @@ const formatCompact = (num) => {
         </section>
 
         <!-- MARKET TABLE -->
-        <section id="market" class="py-24 relative">
+        <section id="market" class="py-16 sm:py-24 relative">
             <div
                 class="absolute inset-0 bg-gradient-to-b from-transparent via-emerald-500/[0.02] to-transparent pointer-events-none">
             </div>
-            <div class="container mx-auto px-6 relative z-10">
+            <div class="container mx-auto px-4 sm:px-6 relative z-10">
                 <div class="flex flex-col md:flex-row justify-between items-start md:items-end gap-4 mb-12">
                     <div>
                         <p class="text-emerald-400 text-xs font-bold uppercase tracking-[0.2em] mb-3">Live Prices</p>
-                        <h2 class="text-3xl md:text-4xl font-black text-white tracking-tight">Today's Market</h2>
+                        <h2 class="text-2xl sm:text-3xl md:text-4xl font-black text-white tracking-tight">Today's Market</h2>
                     </div>
                     <RouterLink to="/register"
                         class="text-gray-400 hover:text-white text-sm font-semibold flex items-center gap-1 transition-colors">
@@ -350,21 +350,21 @@ const formatCompact = (num) => {
         </section>
 
         <!-- CTA SECTION -->
-        <section class="py-32 relative overflow-hidden">
+        <section class="py-20 sm:py-32 relative overflow-hidden">
             <div
                 class="absolute inset-0 bg-gradient-to-r from-emerald-500/[0.06] via-transparent to-blue-500/[0.06] pointer-events-none">
             </div>
-            <div class="container mx-auto px-6 text-center relative z-10">
-                <h2 class="text-4xl md:text-7xl font-black mb-6 text-white tracking-tighter leading-[0.95]">
+            <div class="container mx-auto px-4 sm:px-6 text-center relative z-10">
+                <h2 class="text-3xl sm:text-4xl md:text-7xl font-black mb-6 text-white tracking-tighter leading-[0.95]">
                     Start trading<br />
                     <span class="text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 to-cyan-400">in
                         seconds</span>
                 </h2>
-                <p class="text-gray-400 text-lg mb-10 max-w-lg mx-auto font-light">
+                <p class="text-gray-400 text-base sm:text-lg mb-10 max-w-lg mx-auto font-light">
                     No minimum deposit. No hidden fees. Setup takes less than 2 minutes.
                 </p>
                 <RouterLink to="/register"
-                    class="inline-flex items-center gap-3 px-12 py-5 bg-white text-black font-black rounded-2xl text-lg transition-all hover:scale-105 hover:shadow-[0_0_60px_rgba(255,255,255,0.1)]">
+                    class="inline-flex items-center gap-3 px-8 sm:px-12 py-4 sm:py-5 bg-white text-black font-black rounded-2xl text-base sm:text-lg transition-all hover:scale-105 hover:shadow-[0_0_60px_rgba(255,255,255,0.1)]">
                     Create Account — It's Free
                     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5"
                         stroke="currentColor" class="w-5 h-5">
@@ -375,9 +375,9 @@ const formatCompact = (num) => {
         </section>
 
         <!-- FOOTER -->
-        <footer class="border-t border-white/[0.04] py-12 text-gray-500 text-sm">
-            <div class="container mx-auto px-6 grid md:grid-cols-4 gap-8 mb-10">
-                <div>
+        <footer class="border-t border-white/[0.04] py-10 sm:py-12 text-gray-500 text-sm">
+            <div class="container mx-auto px-4 sm:px-6 grid grid-cols-2 sm:grid-cols-4 gap-8 mb-10">
+                <div class="col-span-2 sm:col-span-1">
                     <div class="flex items-center gap-2 mb-4">
                         <img src="../assets/logo.png" alt="MyCOINFLIP" class="h-7 w-auto opacity-50 grayscale" />
                         <span class="font-bold text-gray-300">MyCOINFLIP</span>
@@ -409,7 +409,7 @@ const formatCompact = (num) => {
                     </ul>
                 </div>
             </div>
-            <div class="container mx-auto px-6 border-t border-white/[0.04] pt-8 text-center text-xs text-gray-600">
+            <div class="container mx-auto px-4 sm:px-6 border-t border-white/[0.04] pt-8 text-center text-xs text-gray-600">
                 <p>&copy; 2026 MyCOINFLIP. All rights reserved.</p>
             </div>
         </footer>
@@ -419,5 +419,14 @@ const formatCompact = (num) => {
 <style scoped>
 .animate-pulse-slow {
     animation: pulse 8s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+/* Hide scrollbar for coin cards horizontal scroll on mobile */
+.scrollbar-hide {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+}
+.scrollbar-hide::-webkit-scrollbar {
+    display: none;
 }
 </style>

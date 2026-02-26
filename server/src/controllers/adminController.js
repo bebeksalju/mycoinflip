@@ -1,5 +1,5 @@
 const prisma = require('../db');
-const bcrypt = require('bcrypt');
+const bcrypt = require('bcryptjs');
 
 // ==================== ROLE HELPERS ====================
 
