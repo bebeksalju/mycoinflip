@@ -39,8 +39,8 @@ services:
       - server
     volumes:
       - ./nginx/conf.d:/etc/nginx/conf.d:ro
-      - certbot_certs:/etc/letsencrypt
-      - certbot_data:/var/www/certbot
+      - ./certbot/conf:/etc/letsencrypt
+      - ./certbot/www:/var/www/certbot
     ports:
       - "80:80"
       - "443:443"
@@ -49,12 +49,10 @@ services:
     image: certbot/certbot
     restart: unless-stopped
     volumes:
-      - certbot_certs:/etc/letsencrypt
-      - certbot_data:/var/www/certbot
+      - ./certbot/conf:/etc/letsencrypt
+      - ./certbot/www:/var/www/certbot
     entrypoint: "/bin/sh -c 'trap exit TERM; while :; do certbot renew; sleep 12h & wait $${!}; done;'"
 
 volumes:
   postgres_data:
   uploads_data:
-  certbot_certs:
-  certbot_data:
