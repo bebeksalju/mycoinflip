@@ -63,6 +63,7 @@ done
 
 $COMPOSE run --rm certbot certonly \
     --webroot \
+    --non-interactive \
     -w /var/www/certbot \
     $DOMAIN_ARGS \
     --email "$EMAIL" \
